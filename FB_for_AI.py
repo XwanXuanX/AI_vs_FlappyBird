@@ -1,4 +1,6 @@
-# FlappyBird, Original Edition
+# FlappyBird, AI Edition
+# Modified from FB_original
+# Increase getters and APIs for AI to call
 
 # import modules
 import sys
