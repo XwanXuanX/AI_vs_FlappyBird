@@ -5,6 +5,7 @@
 # import modules
 import sys
 import random
+from time import sleep
 from turtle import up 
 import pygame
 from pynput.keyboard import Key, Controller
@@ -283,14 +284,17 @@ class AIThread(threading.Thread):
 def StartPlay():
     keyboard = Controller()
     key = " "
-    keyboard.press(key)
-    keyboard.release(key)
+
+    for i in range(5):
+        sleep(0.4)  
+        keyboard.press(key)
+        keyboard.release(key)
+
 
 if __name__ == "__main__":
     gameThread = GameThread(1, "GameThread")
     aiThread = AIThread(2, "AIThread")
-    
+
     gameThread.start()
     aiThread.start()
 
-    print("Exiting main thread...")
