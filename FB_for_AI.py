@@ -4,8 +4,12 @@
 
 # import modules
 import sys
-import random 
+import random
+from turtle import up 
 import pygame
+from pynput.keyboard import Key, Controller
+import threading
+
 
 # FPS
 FPS = 30
@@ -23,6 +27,7 @@ BIRD_WIDTH = BIRD_HEIGHT = 20
 FLOOR_HEIGHT = 80
 # Gameplay area
 BASE_HEIGHT = SCREEN_HEIGHT - FLOOR_HEIGHT
+
 
 class Bird(pygame.sprite.Sprite):
     def __init__(self, position):
@@ -80,21 +85,37 @@ class Bird(pygame.sprite.Sprite):
     def draw(self, screen):
         pygame.draw.rect(screen, (255, 255, 255), self.rect, 1)
 
+#________________________________________________________________________
+#   API for AI to call
+#   Get the center X position of bird
+
+    def getBirdYPos(self):
+        return self.rect.centery
+#________________________________________________________________________
+
 
 class Pipe(pygame.sprite.Sprite):
     def __init__(self, position):
         pygame.sprite.Sprite.__init__(self)
-        left, top = position
+        left, self.top = position
 
         pipe_height = PIPE_HEIGHT
-        if top > 0:
-            pipe_height = BASE_HEIGHT - top + 1
-        self.rect = pygame.Rect(left, top, PIPE_WIDTH, pipe_height)
+        if self.top > 0:
+            pipe_height = BASE_HEIGHT - self.top + 1
+        self.rect = pygame.Rect(left, self.top, PIPE_WIDTH, pipe_height)
         # use to calculate score
         self.used_for_score = False
 
     def draw(self, screen):
         pygame.draw.rect(screen, (255, 255, 255), self.rect, 1)
+
+#_________________________________________________________________________
+#   API for AI to call
+#   Get the top and bottom position of pipes
+
+    def getPipeYPos(self):
+        return self.top
+#_________________________________________________________________________
 
     @staticmethod
     def generate_pipe_position():
@@ -184,61 +205,92 @@ def draw_score(screen, score):
                 (offset, SCREEN_HEIGHT * 0.1))
 
 
-# Draw Game over
-def draw_game_over(screen, text):
-    font_size = 24
-    font = pygame.font.SysFont('arial', font_size)
-    screen.blit(font.render(text, True, (255, 255, 255), (0, 0, 0)),
-                (60, SCREEN_HEIGHT * 0.4))
-
-
 # key detection
 def press(is_game_running, bird):
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        elif event.type == pygame.KEYDOWN:
+        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE or event.key == pygame.K_UP:  # space bar to flap the bird
                 if is_game_running:
                     bird.up()
-            elif event.key == 13 and not is_game_running:  # press enter to resume when game over
-                return True
 
 
-def main():
-    screen = init_game()
-    bird, pipe_sprites = init_sprite()
-    clock = pygame.time.Clock()
-    is_add_pipe = True
-    is_game_running = True
-    score = 0
-    while True:
-        restart = press(is_game_running, bird)  # press key
-        if restart:
-            return
-        screen.fill((0, 0, 0))
-        is_collision = collision(bird, pipe_sprites)  # collision detection
-        if is_collision:
-            is_game_running = False  # if collide, game over
-        if is_game_running:
-            is_add_pipe, score = move_pipe(bird, pipe_sprites, is_add_pipe,
-                                           score)  # add pipes when game is not over
-        else:
-            draw_game_over(screen, 'Press Enter To Start!')  # if game is over, print the message
-        bird.draw(screen)
-        draw_score(screen, score)
+class Game():
+    def __init__(self):
+        self.screen = init_game()
+        self.bird, self.pipe_sprites = init_sprite()
+        self.clock = pygame.time.Clock()
+        self.is_add_pipe = True
+        self.is_game_running = True
+        self.score = 0
+    
+    def CreateGame(self):
+        while True:
+            press(self.is_game_running, self.bird)
 
-        pygame.draw.line(screen, (255, 255, 255), (0, BASE_HEIGHT),
-                         (SCREEN_WIDTH, BASE_HEIGHT))
+            self.screen.fill((0, 0, 0))
+            is_collision = collision(self.bird, self.pipe_sprites)  # collision detection
+            if is_collision:
+                self.is_game_running = False  # if collide, game over
+            if self.is_game_running:
+                self.is_add_pipe, self.score = move_pipe(self.bird, self.pipe_sprites, self.is_add_pipe,
+                                                         self.score)  # add pipes when game is not over
+            else:
+                pygame.quit()
+                return
 
-        for pipe in pipe_sprites:
-            pipe.draw(screen)
+            self.bird.draw(self.screen)
+            draw_score(self.screen, self.score)
+            
+            pygame.draw.line(self.screen, (255, 255, 255), (0, BASE_HEIGHT),
+                            (SCREEN_WIDTH, BASE_HEIGHT))
+            
+            for pipe in self.pipe_sprites:
+                pipe.draw(self.screen)
 
-        pygame.display.update()
-        clock.tick(FPS)
+            pygame.display.update()
+            self.clock.tick(FPS)
 
+
+class GameThread(threading.Thread):
+    def __init__(self, threadID, name):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+
+    def run(self):
+        print("Starting " + self.name)
+        StartGame() 
+        print("Exiting " + self.name)
+
+def StartGame():
+    game = Game()
+    game.CreateGame()
+    if game.is_game_running == False:
+        return
+
+
+class AIThread(threading.Thread):
+    def __init__(self, threadID, name):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+
+    def run(self):
+        print("Starting " + self.name)
+        StartPlay()
+        print("Exiting " + self.name)
+
+def StartPlay():
+    keyboard = Controller()
+    key = " "
+    keyboard.press(key)
+    keyboard.release(key)
 
 if __name__ == "__main__":
-    while True:
-        main()
+    gameThread = GameThread(1, "GameThread")
+    aiThread = AIThread(2, "AIThread")
+    
+    gameThread.start()
+    aiThread.start()
+
+    print("Exiting main thread...")
