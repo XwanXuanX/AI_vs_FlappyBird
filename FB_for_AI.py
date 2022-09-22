@@ -4,10 +4,7 @@
 
 # import modules
 import random
-from time import sleep
 import pygame
-from pynput.keyboard import Controller
-import threading
 
 
 # FPS
