@@ -36,11 +36,9 @@ class Bird(pygame.sprite.Sprite):
     def __init__(self, position):
         pygame.sprite.Sprite.__init__(self)
         self.rect = pygame.Rect(*position, BIRD_WIDTH, BIRD_HEIGHT)
-
         self.is_flapped = False
         self.up_speed = 10
         self.down_speed = 0
-
         self.time_pass = FPS / 1000
 
     # update bird position
@@ -66,7 +64,6 @@ class Bird(pygame.sprite.Sprite):
             self.up_speed = 0
             self.rect.top = 0
             is_dead = True
-
         if self.rect.bottom >= BASE_HEIGHT:  # bottom border
             self.up_speed = 0
             self.down_speed = 0
@@ -80,10 +77,8 @@ class Bird(pygame.sprite.Sprite):
 
     # Bird flapped -> go up
     def up(self):
-        if self.is_flapped:
-            self.up_speed = max(12, self.up_speed + 1)
-        else:
-            self.is_flapped = True
+        if self.is_flapped: self.up_speed = max(12, self.up_speed + 1)
+        else: self.is_flapped = True
 
     def draw(self, screen):
         pygame.draw.rect(screen, (255, 255, 255), self.rect, 1)
@@ -101,10 +96,8 @@ class Pipe(pygame.sprite.Sprite):
     def __init__(self, position):
         pygame.sprite.Sprite.__init__(self)
         left, self.top = position
-
         pipe_height = PIPE_HEIGHT
-        if self.top > 0:
-            pipe_height = BASE_HEIGHT - self.top + 1
+        if self.top > 0: pipe_height = BASE_HEIGHT - self.top + 1
         self.rect = pygame.Rect(left, self.top, PIPE_WIDTH, pipe_height)
         # use to calculate score
         self.used_for_score = False
@@ -123,12 +116,10 @@ class Pipe(pygame.sprite.Sprite):
     @staticmethod
     def generate_pipe_position():
         # generate top and bottom cords for pipes
-        top = int(BASE_HEIGHT * 0.2) + random.randrange(
-            0, int(BASE_HEIGHT * 0.6 - PIPE_GAP_SIZE))
+        top = int(BASE_HEIGHT * 0.2) + random.randrange(0, int(BASE_HEIGHT * 0.6 - PIPE_GAP_SIZE))
         return {
             'top': (SCREEN_WIDTH + 25, top - PIPE_HEIGHT),
-            'bottom': (SCREEN_WIDTH + 25, top + PIPE_GAP_SIZE)
-        }
+            'bottom': (SCREEN_WIDTH + 25, top + PIPE_GAP_SIZE)}
 
 
 # Initialize game
@@ -149,13 +140,11 @@ def init_sprite():
     for i in range(2):
         pipe_pos = Pipe.generate_pipe_position()
         # Add pipe above
-        pipe_sprites.add(
-            Pipe((SCREEN_WIDTH + i * SCREEN_WIDTH / 2,
-                  pipe_pos.get('top')[-1])))
+        pipe_sprites.add(Pipe((SCREEN_WIDTH + i * SCREEN_WIDTH / 2,
+                         pipe_pos.get('top')[-1])))
         # Add pipe below
-        pipe_sprites.add(
-            Pipe((SCREEN_WIDTH + i * SCREEN_WIDTH / 2,
-                  pipe_pos.get('bottom')[-1])))
+        pipe_sprites.add(Pipe((SCREEN_WIDTH + i * SCREEN_WIDTH / 2,
+                         pipe_pos.get('bottom')[-1])))
     return bird, pipe_sprites
 
 
@@ -163,14 +152,10 @@ def init_sprite():
 def collision(bird, pipe_sprites):
     is_collision = False
     for pipe in pipe_sprites:
-        if pygame.sprite.collide_rect(bird, pipe):
-            is_collision = True
-
+        if pygame.sprite.collide_rect(bird, pipe): is_collision = True
     # update birds
     is_dead = bird.update()
-    if is_dead:
-        is_collision = True
-
+    if is_dead: is_collision = True
     return is_collision
 
 
@@ -204,17 +189,18 @@ def draw_score(screen, score):
     digits = len(str(int(score)))
     offset = (SCREEN_WIDTH - digits * font_size) / 2
     font = pygame.font.SysFont('Blod', font_size)
-    screen.blit(font.render(str(int(score)), True, (255, 255, 255)),
-                (offset, SCREEN_HEIGHT * 0.1))
+    screen.blit(font.render(str(int(score)), True, (255, 255, 255)), (offset, SCREEN_HEIGHT * 0.1))
 
 
 # key detection
 def press(is_game_running, bird):
     for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE or event.key == pygame.K_UP:  # space bar to flap the bird
-                if is_game_running: bird.up()
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and is_game_running:
+            bird.up() # space bar to flap the bird
 
+
+#________________________________________________________________
+#   Main Game Class
 
 class Game():
     def __init__(self):
@@ -227,27 +213,24 @@ class Game():
     
     def CreateGame(self):
         while True:
-            press(self.is_game_running, self.bird)
+            press(self.is_game_running, self.bird)  # detect button press
 
-            self.screen.fill((0, 0, 0))
+            self.screen.fill((0, 0, 0)) # set background color
+
             is_collision = collision(self.bird, self.pipe_sprites)  # collision detection
-            if is_collision:
-                self.is_game_running = False  # if collide, game over
+            if is_collision: self.is_game_running = False  # if collide, game over
+
             if self.is_game_running:
                 self.is_add_pipe, self.score = move_pipe(self.bird, self.pipe_sprites, self.is_add_pipe,
                                                          self.score)  # add pipes when game is not over
-            else:
-                pygame.quit()
-                return
+            else: pygame.quit(); return
 
+            # Draw elements
             self.bird.draw(self.screen)
             draw_score(self.screen, self.score)
-            
             pygame.draw.line(self.screen, (255, 255, 255), (0, BASE_HEIGHT),
                             (SCREEN_WIDTH, BASE_HEIGHT))
-            
-            for pipe in self.pipe_sprites:
-                pipe.draw(self.screen)
+            for pipe in self.pipe_sprites: pipe.draw(self.screen)
 
             pygame.display.update()
             self.clock.tick(FPS)
@@ -257,14 +240,16 @@ class Game():
 #   Thread 1: Create and run the game
 #   Thread 2: AI mimic keyboard input
 
+# AI will modify this global variable to decide whether to jump.
 should_jump = True
 
+# create and run a new game, exit when gameover
 def StartGame():
     game = Game()
     game.CreateGame()
-    if game.is_game_running == False:  
-        return
+    if game.is_game_running == False: return
 
+# when game is not over, mimic keyborad input; exit when gameover
 def StartPlay():
     global should_jump
     keyboard = Controller()
@@ -278,7 +263,7 @@ def StartPlay():
         elif gameThread.is_alive() and should_jump == False: pass
         else: return
 
-
+# Multithread class: call different functions based on thread name
 class AIThread(threading.Thread):
     def __init__(self, threadID, name):
         threading.Thread.__init__(self)
@@ -287,15 +272,13 @@ class AIThread(threading.Thread):
 
     def run(self):
         print("Starting " + self.name)
-        if self.name == "GameThread":
-            StartGame()
-        elif self.name == "AIThread":
-            StartPlay()
+        if self.name == "GameThread":   StartGame()
+        elif self.name == "AIThread":   StartPlay()
         print("Exiting " + self.name)
-        
+
 
 #_________________________________________________________________
-#   Main Function for testing
+#   Main Function for testing (Will be commented out later)
 
 if __name__ == "__main__":
     gameThread = AIThread(1, "GameThread")
