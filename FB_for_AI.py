@@ -3,8 +3,10 @@
 # Increase getters and APIs for AI to call
 
 # import modules
+from gc import is_finalized
 import sys
 import random
+from telnetlib import GA
 from time import sleep
 from turtle import up 
 import pygame
@@ -211,8 +213,7 @@ def press(is_game_running, bird):
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE or event.key == pygame.K_UP:  # space bar to flap the bird
-                if is_game_running:
-                    bird.up()
+                if is_game_running: bird.up()
 
 
 class Game():
@@ -252,22 +253,30 @@ class Game():
             self.clock.tick(FPS)
 
 
-class GameThread(threading.Thread):
-    def __init__(self, threadID, name):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
+#________________________________________________________________
+#   Thread 1: Create and run the game
+#   Thread 2: AI mimic keyboard input
 
-    def run(self):
-        print("Starting " + self.name)
-        StartGame() 
-        print("Exiting " + self.name)
+should_jump = True
 
 def StartGame():
     game = Game()
     game.CreateGame()
-    if game.is_game_running == False:
+    if game.is_game_running == False:  
         return
+
+def StartPlay():
+    global should_jump
+    keyboard = Controller()
+    key = " "
+
+    while True:
+        if gameThread.is_alive() and should_jump == True:
+            keyboard.press(key)
+            keyboard.release(key)
+            sleep(0.4)
+        elif gameThread.is_alive() and should_jump == False: pass
+        else: return
 
 
 class AIThread(threading.Thread):
@@ -278,23 +287,20 @@ class AIThread(threading.Thread):
 
     def run(self):
         print("Starting " + self.name)
-        StartPlay()
+        if self.name == "GameThread":
+            StartGame()
+        elif self.name == "AIThread":
+            StartPlay()
         print("Exiting " + self.name)
+        
 
-def StartPlay():
-    keyboard = Controller()
-    key = " "
-
-    for i in range(5):
-        sleep(0.4)  
-        keyboard.press(key)
-        keyboard.release(key)
-
+#_________________________________________________________________
+#   Main Function for testing
 
 if __name__ == "__main__":
-    gameThread = GameThread(1, "GameThread")
+    gameThread = AIThread(1, "GameThread")
     aiThread = AIThread(2, "AIThread")
 
     gameThread.start()
     aiThread.start()
-
+#_________________________________________________________________
