@@ -3,14 +3,10 @@
 # Increase getters and APIs for AI to call
 
 # import modules
-from gc import is_finalized
-import sys
 import random
-from telnetlib import GA
 from time import sleep
-from turtle import up 
 import pygame
-from pynput.keyboard import Key, Controller
+from pynput.keyboard import Controller
 import threading
 
 
@@ -83,14 +79,6 @@ class Bird(pygame.sprite.Sprite):
     def draw(self, screen):
         pygame.draw.rect(screen, (255, 255, 255), self.rect, 1)
 
-#________________________________________________________________________
-#   API for AI to call
-#   Get the center X position of bird
-
-    def getBirdYPos(self):
-        return self.rect.centery
-#________________________________________________________________________
-
 
 class Pipe(pygame.sprite.Sprite):
     def __init__(self, position):
@@ -104,14 +92,6 @@ class Pipe(pygame.sprite.Sprite):
 
     def draw(self, screen):
         pygame.draw.rect(screen, (255, 255, 255), self.rect, 1)
-
-#_________________________________________________________________________
-#   API for AI to call
-#   Get the top and bottom position of pipes
-
-    def getPipeYPos(self):
-        return self.top
-#_________________________________________________________________________
 
     @staticmethod
     def generate_pipe_position():
@@ -201,6 +181,9 @@ def press(is_game_running, bird):
 
 #________________________________________________________________
 #   Main Game Class
+bird_YPos = 0
+pipe_Top = 0
+pipe_Bottom = 0
 
 class Game():
     def __init__(self):
@@ -210,6 +193,18 @@ class Game():
         self.is_add_pipe = True
         self.is_game_running = True
         self.score = 0
+
+    def getParamsforAI(self):
+        global bird_YPos, pipe_Top, pipe_Bottom
+        bird_YPos = BASE_HEIGHT - self.bird.rect.centery # Assign to global var [bird_YPos]
+        bird_XPos = self.bird.rect.centerx
+
+        pipe_list = []
+        for pipe in self.pipe_sprites.sprites():
+            if pipe.rect.centerx > bird_XPos: pipe_list.append(pipe)
+            else: pass
+        pipe_Top    = BASE_HEIGHT - pipe_list[0].rect.bottom # Assign to global var [pipe_Top]
+        pipe_Bottom = BASE_HEIGHT - pipe_list[1].rect.top    # Assign to global var [pipe_Bottom]
     
     def CreateGame(self):
         while True:
@@ -232,6 +227,7 @@ class Game():
                             (SCREEN_WIDTH, BASE_HEIGHT))
             for pipe in self.pipe_sprites: pipe.draw(self.screen)
 
+            self.getParamsforAI()   # print out params used to train network
             pygame.display.update()
             self.clock.tick(FPS)
 
