@@ -1,6 +1,6 @@
 # import modules
-# import tensorflow as tf
-import numpy as np
+import AI
+import FB_for_AI as FB
 import threading
 from time import sleep
 from pynput.keyboard import Controller
@@ -15,7 +15,7 @@ should_jump = True
 
 # create and run a new game, exit when gameover
 def StartGame():
-    game = Game()
+    game = FB.Game()
     game.CreateGame()
     if game.is_game_running == False: return
 
