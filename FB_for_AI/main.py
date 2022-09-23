@@ -4,7 +4,6 @@ import FB_for_AI as FB
 import threading
 from time import sleep
 from pynput.keyboard import Controller
-from FB_for_AI import *
 
 #________________________________________________________________
 #   Thread 1: Create and run the game
