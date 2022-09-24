@@ -1,6 +1,7 @@
 # import modules
 import numpy as np
 import random
+from math import floor
 
 #____________________________________________________________________
 #                           Layer Class
@@ -61,10 +62,18 @@ class Layer:
             Pos2 = getPos(self.__B.shape[0], self.__B.shape[1])
             self.__B[Pos1[0], Pos1[1]], self.__B[Pos2[0], Pos2[1]] = self.__B[Pos2[0], Pos2[1]], self.__B[Pos1[0], Pos1[1]]
 
-    def mutate(self, extent):
-        
+    def mutate(self, MutTimes=1, MutType="Alternate", MutBias=False):
+        if MutType == "Alternate":
+            for i in range(MutTimes): self.__Alternate_MUT(Weight_only=(not MutBias))
+        elif MutType == "Exchange":
+            for i in range(MutTimes): self.__Exchange_MUT(Weight_only=(not MutBias))
+        elif MutType == "Both":
+            for i in range(MutTimes): self.__Alternate_MUT(Weight_only=(not MutBias))
+            for i in range(MutTimes): self.__Exchange_MUT(Weight_only=(not MutBias))
+        else: 
+            print("Wrong mutation type. Mutation skipped.\n")
 
-    # getters
+    # getters (if need any)
     # return the number of nodes
     def getUnits(self):     return self.__units
     # return weight
@@ -75,6 +84,8 @@ class Layer:
 
 #____________________________________________________________________
 #                           Model Class
+
+
 
 
 #___________________________________________________________________
@@ -94,4 +105,6 @@ class Layer:
 #       * breed()
 
 layer = Layer(units=3, nextUnits=10, activation="relu", RndGene=True)
-layer.mutate(1)
+print(layer.getWeight())
+layer.mutate()
+print(layer.getWeight())
