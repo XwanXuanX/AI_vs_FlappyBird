@@ -1,8 +1,6 @@
 # import modules
-from operator import truediv
 import numpy as np
 import random
-from math import floor
 
 #____________________________________________________________________
 #                       Weight & Bias Class
@@ -107,27 +105,33 @@ class Layer:
 #                           Model Class
 
 class Model:
-    # define layer structure
+    # define layer structure (3 -> 5 -> 3 -> 2)
     def __init__(self, RNG=True, WB=None):
         self.__input =  Layer(units=3, nextUnits=5,  # 3 -> 5
-                              activation='relu',
+                              activation='sigmoid',
                               RndGene=RNG,
-                              W_ex=WB.getLayerW(1), B_ex=WB.getLayerB(1))
+                              W_ex=None if RNG else WB.getLayerW(1), B_ex=None if RNG else WB.getLayerB(1))
         self.__dense1 = Layer(units=5, nextUnits=3,  # 5 -> 3
                               activation='relu',
                               RndGene=RNG,
-                              W_ex=WB.getLayerW(2), B_ex=WB.getLayerB(2))
-        self.__dense2 = Layer(units=3, nextUnits=1,  # 3 -> 1
+                              W_ex=None if RNG else WB.getLayerW(2), B_ex=None if RNG else WB.getLayerB(2))
+        self.__dense2 = Layer(units=3, nextUnits=2,  # 3 -> 2
                               activation='softmax',
                               RndGene=RNG,
-                              W_ex=WB.getLayerW(3), B_ex=WB.getLayerB(3))
+                              W_ex=None if RNG else WB.getLayerW(3), B_ex=None if RNG else WB.getLayerB(3))
 
         if RNG == True: self.__WnB = WB
         else:
             W_list = [self.__input.getWeight(), self.__dense1.getWeight(), self.__dense2.getWeight()]
             B_list = [self.__input.getBias(),   self.__dense1.getBias(),   self.__dense2.getBias()  ]
             self.__WnB = WnB(W_list, B_list)
-            
+
+    def predict(self, input):
+        output = self.__input.Calculate(input)
+        output = self.__dense1.Calculate(output)
+        output = self.__dense2.Calculate(output)
+        print(output[0])
+
 
 
 #___________________________________________________________________
@@ -146,7 +150,5 @@ class Model:
 #       * play()
 #       * breed()
 
-layer = Layer(units=3, nextUnits=10, activation="relu", RndGene=True)
-print(layer.getWeight())
-layer.mutate()
-print(layer.getWeight())
+model = Model(True)
+model.predict(np.array([2,3,4]))
