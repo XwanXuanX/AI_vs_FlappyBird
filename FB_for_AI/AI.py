@@ -1,4 +1,5 @@
 # import modules
+from operator import truediv
 import numpy as np
 import random
 from math import floor
@@ -7,7 +8,21 @@ from math import floor
 #                       Weight & Bias Class
 
 class WnB:
-    def __init__(self)
+    def __init__(self, W_list, B_list):
+        self.__W_list = W_list
+        self.__B_list = B_list
+
+    def getLayerW(self, layer):
+        if layer > len(self.__W_list  + 1): 
+            print("Layer does not exist!")
+            raise IndexError
+        else: return self.__W_list[layer - 1]
+
+    def getLayerB(self, layer):
+        if layer > len(self.__B_list + 1):
+            print("Layer does not exist!")
+            raise IndexError
+        else: return self.__B_list[layer - 1]
 
 #____________________________________________________________________
 #                           Layer Class
@@ -92,9 +107,27 @@ class Layer:
 #                           Model Class
 
 class Model:
-    def __init__(self):
+    # define layer structure
+    def __init__(self, RNG=True, WB=None):
+        self.__input =  Layer(units=3, nextUnits=5,  # 3 -> 5
+                              activation='relu',
+                              RndGene=RNG,
+                              W_ex=WB.getLayerW(1), B_ex=WB.getLayerB(1))
+        self.__dense1 = Layer(units=5, nextUnits=3,  # 5 -> 3
+                              activation='relu',
+                              RndGene=RNG,
+                              W_ex=WB.getLayerW(2), B_ex=WB.getLayerB(2))
+        self.__dense2 = Layer(units=3, nextUnits=1,  # 3 -> 1
+                              activation='softmax',
+                              RndGene=RNG,
+                              W_ex=WB.getLayerW(3), B_ex=WB.getLayerB(3))
 
-
+        if RNG == True: self.__WnB = WB
+        else:
+            W_list = [self.__input.getWeight(), self.__dense1.getWeight(), self.__dense2.getWeight()]
+            B_list = [self.__input.getBias(),   self.__dense1.getBias(),   self.__dense2.getBias()  ]
+            self.__WnB = WnB(W_list, B_list)
+            
 
 
 #___________________________________________________________________
