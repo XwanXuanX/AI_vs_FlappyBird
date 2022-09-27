@@ -130,7 +130,14 @@ class Model:
         output = self.__input.Calculate(input)
         output = self.__dense1.Calculate(output)
         output = self.__dense2.Calculate(output)
-        print(output[0])
+        tmpDict = {0: True, 1: False}   # 0: Jump | 1: DoNothing
+        return tmpDict[output.argmax()]
+
+    def mutate(self, MUTextent=1):
+        self.__input.mutate()
+
+    def getWB(self):
+        return self.__WnB
 
 
 
@@ -151,4 +158,4 @@ class Model:
 #       * breed()
 
 model = Model(True)
-model.predict(np.array([2,3,4]))
+print(model.predict(np.array([2,3,4])))
