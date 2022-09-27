@@ -4,6 +4,12 @@ import random
 from math import floor
 
 #____________________________________________________________________
+#                       Weight & Bias Class
+
+class WnB:
+    def __init__(self)
+
+#____________________________________________________________________
 #                           Layer Class
 
 # Activation functions
@@ -84,6 +90,9 @@ class Layer:
 
 #____________________________________________________________________
 #                           Model Class
+
+class Model:
+    def __init__(self):
 
 
 
