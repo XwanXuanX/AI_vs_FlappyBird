@@ -5,6 +5,7 @@
 # import modules
 import random
 import pygame
+import AI as AI
 
 
 # FPS
@@ -177,54 +178,69 @@ def press(is_game_running, bird):
 
 
 #________________________________________________________________
-#   Main Game Class
-bird_YPos = 0
-pipe_Top = 0
-pipe_Bottom = 0
+#   Main Game Class (Rewrite)
 
-class Game():
-    def __init__(self):
-        self.screen = init_game()
-        self.bird, self.pipe_sprites = init_sprite()
-        self.clock = pygame.time.Clock()
-        self.is_add_pipe = True
-        self.is_game_running = True
-        self.score = 0
+# global variable; AIPlayer will modify this to control the game
+should_jump = False
 
-    def getParamsforAI(self):
-        global bird_YPos, pipe_Top, pipe_Bottom
-        bird_YPos = BASE_HEIGHT - self.bird.rect.centery # Assign to global var [bird_YPos]
-        bird_XPos = self.bird.rect.centerx
+class AIPlayer():
+    def __init__(self, is_1stGene=True, WB=None):
+        # initialize an AI player:
+        #   * if is 1st generation, randomly create WB; if not, assign WB
+        #   * it will mutate itself once WB is created
+        #   * relevent variables
+        self.model = AI.Model(RNG=is_1stGene, WB=WB)
+        self.model.mutate(MUTPercent=10)
+        self.fitness = 0
+
+        # initialize a new game:
+        #   * irrelevant variables; hide from global
+        self.__screen = init_game()
+        self.__bird, self.__pipe_sprites = init_sprite()
+        self.__clock = pygame.time.Clock()
+        self.__is_add_pipe = True
+        self.__is_game_running = True
+
+    def __getParamsforAI(self):
+        bird_YPos = BASE_HEIGHT - self.__bird.rect.centery
+        bird_XPos = self.__bird.rect.centerx
 
         pipe_list = []
-        for pipe in self.pipe_sprites.sprites():
+        for pipe in self.__pipe_sprites.sprites():
             if pipe.rect.centerx > bird_XPos: pipe_list.append(pipe)
             else: pass
-        pipe_Top    = BASE_HEIGHT - pipe_list[0].rect.bottom # Assign to global var [pipe_Top]
-        pipe_Bottom = BASE_HEIGHT - pipe_list[1].rect.top    # Assign to global var [pipe_Bottom]
-    
+        
+        pipe_Top    = BASE_HEIGHT - pipe_list[0].rect.bottom
+        pipe_Bottom = BASE_HEIGHT - pipe_list[1].rect.top
+        return [bird_YPos, pipe_Top, pipe_Bottom]
+
+    def __move(self, input):
+        global should_jump
+        should_jump = self.model.predict(input)
+
     def CreateGame(self):
         while True:
-            press(self.is_game_running, self.bird)  # detect button press
+            press(self.__is_game_running, self.__bird)  # detect button press
 
-            self.screen.fill((0, 0, 0)) # set background color
+            self.__screen.fill((0, 0, 0)) # set background color
 
-            is_collision = collision(self.bird, self.pipe_sprites)  # collision detection
-            if is_collision: self.is_game_running = False  # if collide, game over
+            is_collision = collision(self.__bird, self.__pipe_sprites)  # collision detection
+            if is_collision: self.__is_game_running = False  # if collide, game over
 
-            if self.is_game_running:
-                self.is_add_pipe, self.score = move_pipe(self.bird, self.pipe_sprites, self.is_add_pipe,
-                                                         self.score)  # add pipes when game is not over
+            if self.__is_game_running:
+                self.__is_add_pipe, self.fitness = move_pipe(self.__bird, self.__pipe_sprites, self.__is_add_pipe,
+                                                             self.fitness)  # add pipes when game is not over
             else: pygame.quit(); return
 
             # Draw elements
-            self.bird.draw(self.screen)
-            draw_score(self.screen, self.score)
-            pygame.draw.line(self.screen, (255, 255, 255), (0, BASE_HEIGHT),
+            self.__bird.draw(self.__screen)
+            draw_score(self.__screen, self.fitness)
+            pygame.draw.line(self.__screen, (255, 255, 255), (0, BASE_HEIGHT),
                             (SCREEN_WIDTH, BASE_HEIGHT))
-            for pipe in self.pipe_sprites: pipe.draw(self.screen)
+            for pipe in self.__pipe_sprites: pipe.draw(self.__screen)
 
-            self.getParamsforAI()   # print out params used to train network
+            self.__move(self.__getParamsforAI()) # AI predict whether to jump or not
+
             pygame.display.update()
-            self.clock.tick(FPS)
+            self.__clock.tick(FPS)
 
