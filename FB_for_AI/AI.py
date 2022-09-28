@@ -157,21 +157,3 @@ class Model:
     def getWB(self):
         return self.__WnB
 
-
-
-#___________________________________________________________________
-#                           AI Class
-# Side Notes:
-#   * AI class may contain variables:
-#       * self.Generation
-#       * self.IDNumber
-#       * self.score
-#       * self.isDead
-#       * self.model
-#
-#   * AI class may contain methods:
-#       * __init()__
-#       * mutate()
-#       * play()
-#       * breed()
-
