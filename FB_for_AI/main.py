@@ -1,55 +1,45 @@
 # import modules
-import AI as AI
 import FB_for_AI as FB
-import threading
+from threading import Thread
 from pynput.keyboard import Controller
 from time import sleep
 
 
-#________________________________________________________________
-#   Thread 1: Create and run the game 10 times every generation
-#   Thread 2: AI mimic keyboard input
-
-# create and run a new game, exit when gameover; For every generation
-def StartGame():
-    for i in range(10):
-        player = FB.AIPlayer(True)
-        player.CreateGame()
-    return
-
 # when game is not over, mimic keyborad input; exit when gameover
-def StartPlay():
-    keyboard = Controller()
-    key = " "
+class AIPlayerThread(Thread):
+    run = True
 
-    while True:
-        if gameThread.is_alive() and FB.should_jump == True:
-            keyboard.press(key)
-            keyboard.release(key)
-            sleep(0.4)
-        elif gameThread.is_alive() and FB.should_jump == False: pass
-        else: return
-
-# Multithread class: call different functions based on thread name
-class AIThread(threading.Thread):
-    def __init__(self, threadID, name):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
+    def __init__(self, threadName):
+        Thread.__init__(self)
+        self.__threadName = threadName
 
     def run(self):
-        print("Starting " + self.name)
-        if self.name == "GameThread":   StartGame()
-        elif self.name == "AIThread":   StartPlay()
-        print("Exiting " + self.name)
+        print("Starting: ", self.__threadName)
+
+        keyboard = Controller()
+        key = " "
+        while self.run:
+            if FB.should_jump == True:
+                keyboard.press(key)
+                keyboard.release(key)
+                sleep(0.5)
+            elif FB.should_jump == False: pass
+
+    def StopThread(self):
+        print("Closing: ", self.__threadName)
+        self.run = False
+
 
 #_________________________________________________________________
 #   Main Function for testing (Will be commented out later)
 
 if __name__ == "__main__":
-    gameThread = AIThread(1, "GameThread")
-    aiThread = AIThread(2, "AIThread")
-    gameThread.start()
-    aiThread.start()
+    # create and run a new game, exit when gameover; For every generation
+    for i in range(10):
+        AIPlay = AIPlayerThread("Player Thread")
+        player = FB.AIPlayer(True)
+        AIPlay.start()
+        player.CreateGame()
+        AIPlay.StopThread()
 
 #_________________________________________________________________
