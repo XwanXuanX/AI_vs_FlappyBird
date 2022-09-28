@@ -1,6 +1,7 @@
 # import modules
 import numpy as np
 import random
+from math import floor
 
 #____________________________________________________________________
 #                       Weight & Bias Class
@@ -11,13 +12,13 @@ class WnB:
         self.__B_list = B_list
 
     def getLayerW(self, layer):
-        if layer > len(self.__W_list  + 1): 
+        if layer > len(self.__W_list): 
             print("Layer does not exist!")
             raise IndexError
         else: return self.__W_list[layer - 1]
 
     def getLayerB(self, layer):
-        if layer > len(self.__B_list + 1):
+        if layer > len(self.__B_list):
             print("Layer does not exist!")
             raise IndexError
         else: return self.__B_list[layer - 1]
@@ -45,7 +46,7 @@ class Layer:
                                         size=(self.__units, self.__nextUnits))
             self.__B = np.random.normal(loc=0.0, 
                                         scale=0.3,
-                                        size=(self.__nextUnits))
+                                        size=(1, self.__nextUnits))
         else:
             self.__W = W_ex
             self.__B = B_ex
@@ -120,7 +121,7 @@ class Model:
                               RndGene=RNG,
                               W_ex=None if RNG else WB.getLayerW(3), B_ex=None if RNG else WB.getLayerB(3))
 
-        if RNG == True: self.__WnB = WB
+        if RNG == False: self.__WnB = WB
         else:
             W_list = [self.__input.getWeight(), self.__dense1.getWeight(), self.__dense2.getWeight()]
             B_list = [self.__input.getBias(),   self.__dense1.getBias(),   self.__dense2.getBias()  ]
@@ -133,8 +134,25 @@ class Model:
         tmpDict = {0: True, 1: False}   # 0: Jump | 1: DoNothing
         return tmpDict[output.argmax()]
 
-    def mutate(self, MUTextent=1):
-        self.__input.mutate()
+    def mutate(self, MUTPercent=10):
+        getTime = lambda layer, percent: \
+            floor(np.size(self.__WnB.getLayerW(layer)) * (percent / 100))
+
+        getType = lambda percent: \
+            "Both" if random.randint(0, 100) < percent else \
+                "Alternate" if random.randint(0, 1) else "Exchange"
+
+        getBias = lambda percent: \
+            True if random.randint(0, 100) < percent else False
+
+        self.__input.mutate(getTime(1, MUTPercent), getType(MUTPercent), getBias(MUTPercent))
+        self.__dense1.mutate(getTime(2, MUTPercent), getType(MUTPercent), getBias(MUTPercent))
+        self.__dense2.mutate(getTime(3, MUTPercent), getType(MUTPercent), getBias(MUTPercent))
+
+        del self.__WnB
+        W_list = [self.__input.getWeight(), self.__dense1.getWeight(), self.__dense2.getWeight()]
+        B_list = [self.__input.getBias(),   self.__dense1.getBias(),   self.__dense2.getBias()  ]
+        self.__WnB = WnB(W_list, B_list)
 
     def getWB(self):
         return self.__WnB
@@ -157,5 +175,3 @@ class Model:
 #       * play()
 #       * breed()
 
-model = Model(True)
-print(model.predict(np.array([2,3,4])))
