@@ -6,6 +6,8 @@
 import random
 import pygame
 import AI as AI
+from sklearn import preprocessing
+import numpy as np
 
 
 # FPS
@@ -202,7 +204,7 @@ class AIPlayer():
         self.__is_game_running = True
 
     def __getParamsforAI(self):
-        bird_YPos = BASE_HEIGHT - self.__bird.rect.centery
+        bird_YPos = int(BASE_HEIGHT - self.__bird.rect.centery)
         bird_XPos = self.__bird.rect.centerx
 
         pipe_list = []
@@ -210,9 +212,13 @@ class AIPlayer():
             if pipe.rect.centerx > bird_XPos: pipe_list.append(pipe)
             else: pass
         
-        pipe_Top    = BASE_HEIGHT - pipe_list[0].rect.bottom
-        pipe_Bottom = BASE_HEIGHT - pipe_list[1].rect.top
-        return [bird_YPos, pipe_Top, pipe_Bottom]
+        pipe_Top    : int = int(BASE_HEIGHT - pipe_list[0].rect.bottom)
+        pipe_Bottom : int = int(BASE_HEIGHT - pipe_list[1].rect.top)
+        
+        # Normalize the data feed into the network
+        tmpList = np.array([bird_YPos, pipe_Top, pipe_Bottom])
+        normal_list = preprocessing.normalize([tmpList])
+        return normal_list
 
     def __move(self, input):
         global should_jump
