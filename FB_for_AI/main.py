@@ -3,10 +3,14 @@ import FB_for_AI as FB
 from threading import Thread
 from pynput.keyboard import Controller
 from time import sleep
+from random import randint
 
-NUMBER_OF_PLAYERS = 9 
+NUMBER_OF_PLAYERS = 10 
 
-# when game is not over, mimic keyborad input; exit when gameover
+
+#__________________________________________________________________
+#   Player thread class
+#   when game is not over, mimic keyborad input; exit when gameover
 class AIPlayerThread(Thread):
     run = True
 
@@ -51,22 +55,28 @@ class Generation:
     def __init__(self):
         Generation.__Current_Gen += 1   # When a generation is created, increament
 
-        self.__PlayerList = []  # hold the total 30 AI players
-
-        # initialize players based on generation
-        if Generation.__Current_Gen == 1:
-            for i in range(NUMBER_OF_PLAYERS): self.__PlayerList.append(FB.AIPlayer(True))
-        else:
-            for WB in Generation.__Prev_WBList:
-                for i in range(NUMBER_OF_PLAYERS / len(Generation.__Prev_WBList)): 
-                    self.__PlayerList.append(FB.AIPlayer(False, WB))
+        # Create an empty list to hold the total 30 AI players
+        self.__PlayerList = []
 
     def Train(self):
         for i in range(NUMBER_OF_PLAYERS):
-            PlayerThread = AIPlayerThread("Player Thread")
+            PlayerThread = AIPlayerThread("Player Thread")  # Create thread to mimic keyboard input
+
+            # initialize players based on generation
+            if Generation.__Current_Gen == 1:
+                player = FB.AIPlayer(True)
+            else:
+                player = FB.AIPlayer(False, Generation.__Prev_WBList[randint(0, len(Generation.__Prev_WBList) - 1)])
+
             PlayerThread.start()
-            self.__PlayerList[0].CreateGame()
+            player.CreateGame()
             PlayerThread.StopThread()
+
+            self.__PlayerList.append(player)
+
+    def __SelectBest(self):
+        
+
 
 
 
