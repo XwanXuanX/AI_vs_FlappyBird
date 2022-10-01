@@ -1,12 +1,16 @@
 # import modules
+import numpy as np
 import FB_for_AI as FB
 from threading import Thread
 from pynput.keyboard import Controller
 from time import sleep
 from random import randint
+from AI import WnB
 
 NUMBER_OF_PLAYERS = 10 
 NUMBER_OF_BEST    = 3
+
+TRAIN_GENERATION = 1
 
 
 #__________________________________________________________________
@@ -20,8 +24,6 @@ class AIPlayerThread(Thread):
         self.__threadName = threadName
 
     def run(self):
-        print("Starting: ", self.__threadName)
-
         keyboard = Controller()
         key = " "
         while self.run:
@@ -32,7 +34,6 @@ class AIPlayerThread(Thread):
             elif FB.should_jump == False: pass
 
     def StopThread(self):
-        print("Closing: ", self.__threadName)
         self.run = False
 
 
@@ -74,6 +75,7 @@ class Generation:
             PlayerThread.StopThread()
 
             self.__PlayerList.append(player)
+            print("Player ", str(i + 1), ": ", str(player.fitness), " point(s)")
 
     def __SelectBest(self):
         TmpFitness = []
@@ -92,19 +94,60 @@ class Generation:
         return BestWnB
 
     def Crossover(self):
-        BestModels = self.__SelectBest()
+        BestModels = self.__SelectBest() # holds the WnB classes of top three models
+        Crossed = []                     # holds the result of crossover
+
+        for i in range(len(BestModels)):
+            for j in range(len(BestModels)):
+                if i >= j:
+                    continue
+
+                new_WList = []
+                new_BList = []
+                # Crossover for each layer
+                for k in range(3):
+                    layer_IW, layer_IB = BestModels[i].getLayerW(k + 1), BestModels[i].getLayerB(k + 1)
+                    layer_JW, layer_JB = BestModels[j].getLayerW(k + 1), BestModels[j].getLayerB(k + 1)
+
+                    layer_newW = np.zeros(layer_IW.shape)   # new weight layer
+                    layer_newB = np.zeros(layer_IB.shape)   # new bias layer
+
+                    # Crossover weight matrix
+                    for col in range(layer_newW.shape[1]):
+                        sel_dict = \
+                        {
+                            0: layer_IW[:,col], 
+                            1: layer_JW[:,col]
+                        }
+                        layer_newW[:,col] = sel_dict[randint(0, 1)]
+                    
+                    # Crossover bias matrix
+                    for col in range(layer_newB.shape[1]):
+                        sel_dict = \
+                        {
+                            0: layer_IB[:, col],
+                            1: layer_JB[:, col]
+                        }
+                        layer_newB[:,col] = sel_dict[randint(0, 1)]
+                    
+                    new_WList.append(layer_newW)
+                    new_BList.append(layer_newB)
+                
+                tmpWB = WnB(new_WList, new_BList)
+                Crossed.append(tmpWB)
+        
+        Generation.__Prev_WBList = Crossed
 
 
+def main():
+    # create and run a new game, exit when gameover; For every generation
+    for Gen in range(TRAIN_GENERATION):
+        gen = Generation()
+        print("__________Current Generation: ", str(Generation.getCurrentGen()), "_________")
+        gen.Train()
+        gen.Crossover()
+        print("\n")
 
-
-#_________________________________________________________________
-#   Main Function for testing (Will be commented out later)
 
 if __name__ == "__main__":
-    # create and run a new game, exit when gameover; For every generation
-    gen = Generation()
-    print(Generation.getCurrentGen())
-    gen.Train()
-    gen.Crossover()
-
-#_________________________________________________________________
+    main()
