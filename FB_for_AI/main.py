@@ -149,10 +149,10 @@ class Generation:
                 file.write("Layer " + str(layer) + "____________________________________________________________" + "\n")
                 file.write("Weight: \n")
                 file.write("Shape: " + str(layer_W.shape) + "\n")
-                file.write("Param: " + layer_W.astype(str) + "\n")
+                file.write("Param: " + str(layer_W) + "\n")
                 file.write("Bias: \n")
                 file.write("Shape: " + str(layer_B.shape) + "\n")
-                file.write("Param: " + layer_B.astype(str) + "\n")
+                file.write("Param: " + str(layer_B) + "\n")
                 file.write("\n")
 
 
@@ -169,4 +169,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
