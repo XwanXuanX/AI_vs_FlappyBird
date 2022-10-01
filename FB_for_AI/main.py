@@ -6,6 +6,7 @@ from time import sleep
 from random import randint
 
 NUMBER_OF_PLAYERS = 10 
+NUMBER_OF_BEST    = 3
 
 
 #__________________________________________________________________
@@ -75,8 +76,23 @@ class Generation:
             self.__PlayerList.append(player)
 
     def __SelectBest(self):
-        
+        TmpFitness = []
+        BestPlayer = []
 
+        # Put every score into a list
+        for player in self.__PlayerList: TmpFitness.append(player.fitness)
+        # The players with the top scores are put into BestPlayer list
+        for i in range(NUMBER_OF_BEST):
+            index = TmpFitness.index(max(TmpFitness))   # Get the index of the biggest value in score list
+            BestPlayer.append(self.__PlayerList[index]) # Put the top player in the best player list
+            del TmpFitness[index]   # Delete the top value found in this round
+
+        BestWnB = []
+        for WB in BestPlayer: BestWnB.append(WB.model.getWB()) # put the WnB of each best model into a list
+        return BestWnB
+
+    def Crossover(self):
+        BestModels = self.__SelectBest()
 
 
 
@@ -88,6 +104,7 @@ if __name__ == "__main__":
     # create and run a new game, exit when gameover; For every generation
     gen = Generation()
     print(Generation.getCurrentGen())
-    gen.Train() 
+    gen.Train()
+    gen.Crossover()
 
 #_________________________________________________________________
