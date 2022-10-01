@@ -137,6 +137,23 @@ class Generation:
                 Crossed.append(tmpWB)
         
         Generation.__Prev_WBList = Crossed
+    
+    def Write2File(self):
+        BestModels = self.__SelectBest()
+
+        with open("C:\\七零八碎\\编程\\VSCode\\AI_vs_FlappyBird\\FB_for_AI\\Best_WnB.txt", "w") as file:
+            for layer in range(3):
+                layer_W = BestModels[0].getLayerW(layer + 1)
+                layer_B = BestModels[0].getLayerB(layer + 1)
+
+                file.write("Layer " + str(layer) + "____________________________________________________________" + "\n")
+                file.write("Weight: \n")
+                file.write("Shape: " + str(layer_W.shape) + "\n")
+                file.write("Param: " + layer_W.astype(str) + "\n")
+                file.write("Bias: \n")
+                file.write("Shape: " + str(layer_B.shape) + "\n")
+                file.write("Param: " + layer_B.astype(str) + "\n")
+                file.write("\n")
 
 
 def main():
@@ -145,9 +162,11 @@ def main():
         gen = Generation()
         print("__________Current Generation: ", str(Generation.getCurrentGen()), "_________")
         gen.Train()
-        gen.Crossover()
+        if Gen != TRAIN_GENERATION-1: gen.Crossover()
+        else: gen.Write2File()
         print("\n")
 
 
 if __name__ == "__main__":
     main()
+    
