@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 NUMBER_OF_PLAYERS = 10 
 NUMBER_OF_BEST    = 3
 
-TRAIN_GENERATION = 2
+TRAIN_GENERATION = 50
 
 Fitness_Graph = []
 
