@@ -6,12 +6,14 @@ from pynput.keyboard import Controller
 from time import sleep
 from random import randint
 from AI import WnB
+from matplotlib import pyplot as plt
 
 NUMBER_OF_PLAYERS = 10 
 NUMBER_OF_BEST    = 3
 
-TRAIN_GENERATION = 1
+TRAIN_GENERATION = 2
 
+Fitness_Graph = []
 
 #__________________________________________________________________
 #   Player thread class
@@ -154,6 +156,21 @@ class Generation:
                 file.write("Shape: " + str(layer_B.shape) + "\n")
                 file.write("Param: " + str(layer_B) + "\n")
                 file.write("\n")
+    
+    def GenFitnessMean(self):
+        Fitness = []
+        for player in self.__PlayerList: Fitness.append(player.fitness)
+        Fitness_Graph.append(np.mean(Fitness))
+
+
+def ShowDiagrams():
+    plt.title("Fitness Curve of " + str(TRAIN_GENERATION) + " Generation(s)")
+    plt.xlabel("Generation(s)")
+    plt.ylabel("Ave Fitness")
+    plt.plot(Fitness_Graph, label="Ave Fitness")
+    plt.legend()
+    plt.savefig("C:\\七零八碎\\编程\\VSCode\\AI_vs_FlappyBird\\FB_for_AI\\Fitness.png")
+    plt.show()
 
 
 def main():
@@ -162,9 +179,12 @@ def main():
         gen = Generation()
         print("__________Current Generation: ", str(Generation.getCurrentGen()), "_________")
         gen.Train()
+        gen.GenFitnessMean()
         if Gen != TRAIN_GENERATION-1: gen.Crossover()
         else: gen.Write2File()
         print("\n")
+    
+    ShowDiagrams()
 
 
 if __name__ == "__main__":
