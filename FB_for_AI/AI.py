@@ -41,12 +41,8 @@ class Layer:
         self.__RndGene = RndGene
 
         if self.__RndGene == True:
-            self.__W = np.random.normal(loc=0.0, 
-                                        scale=0.1, 
-                                        size=(self.__units, self.__nextUnits))
-            self.__B = np.random.normal(loc=0.0, 
-                                        scale=0.3,
-                                        size=(1, self.__nextUnits))
+            self.__W = np.random.randn(self.__units, self.__nextUnits) * 0.01
+            self.__B = np.random.randn(1, self.__nextUnits) * 0.01
         else:
             self.__W = W_ex
             self.__B = B_ex
@@ -58,7 +54,7 @@ class Layer:
         if self.__activation == "sigmoid":  return sigmoid(input)
 
     def Calculate(self, input):
-        output = np.matmul(input, self.__W) + self.__B
+        output = np.dot(input, self.__W) + self.__B
         output = self.__useActivation(output)
         return output
 
